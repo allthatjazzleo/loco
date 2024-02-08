@@ -251,14 +251,14 @@ impl AppRoutes {
             tracing::info!("[Middleware] Adding channels");
             let channel_layer_app = tower::ServiceBuilder::new().layer(channels.layer.clone());
             if let Some(cors) = cors {
-                channel_layer_app.layer(cors);
+                app = app.layer(
+                    channel_layer_app.layer(cors.clone())
+                );
+            } else {
+                app = app.layer(
+                    channel_layer_app.layer(tower_http::cors::CorsLayer::permissive())
+                );
             }
-
-            app = app.layer(
-                tower::ServiceBuilder::new()
-                    .layer(tower_http::cors::CorsLayer::permissive())
-                    .layer(channels.layer.clone()),
-            );
         }
 
         let router = app.with_state(ctx);
